@@ -1,11 +1,35 @@
 import math
-import pandas as pd
+import csv
+import os
 
 culturas = []
 areas = []
 insumos_totais = []
 
-df = pd.read_csv("dados.csv")
+ARQUIVO_CSV = "dados_fazenda.csv"
+
+def carregar_dados():
+    """Carrega dados do arquivo CSV para os vetores ao iniciar o programa."""
+    if os.path.exists(ARQUIVO_CSV):
+        with open(ARQUIVO_CSV, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                culturas.append(row['Cultura'])
+                areas.append(float(row['Area_m2']))
+                insumos_totais.append(float(row['Insumo_L']))
+
+def salvar_dados():
+    """Salva os dados atuais dos vetores no arquivo CSV."""
+    with open(ARQUIVO_CSV, mode='w', newline='', encoding='utf-8') as file:
+        fieldnames = ['Cultura', 'Area_m2', 'Insumo_L']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        for i in range(len(culturas)):
+            writer.writerow({
+                'Cultura': culturas[i],
+                'Area_m2': areas[i],
+                'Insumo_L': insumos_totais[i]
+            })
 
 def calcular_area_cafe(comprimento, largura):
     return comprimento * largura
@@ -44,6 +68,7 @@ def entrada_dados():
         culturas.append(nome)
         areas.append(area)
         insumos_totais.append(insumo)
+        salvar_dados() 
         print(f"Dados de {nome} salvos com sucesso!")
         
     elif tipo == '2':
@@ -57,6 +82,7 @@ def entrada_dados():
         culturas.append(nome)
         areas.append(area)
         insumos_totais.append(insumo)
+        salvar_dados() 
         print(f"Dados de {nome} salvos com sucesso!")
     else:
         print("Opção inválida!")
@@ -70,8 +96,13 @@ def saida_dados():
     print(f"{'ID':<4} | {'Cultura':<10} | {'Área (m²)':<12} | {'Insumo (L)':<12}")
     print("-" * 45)
     for i in range(len(culturas)):
-        df.insert(i,culturas[i],areas[i],insumos_totais[i])
         print(f"{i:<4} | {culturas[i]:<10} | {areas[i]:<12.2f} | {insumos_totais[i]:<12.2f}")
+
+def inserir_csv(culturas,area,insumos_totais):
+    index = len(df_dados)
+    nova_linha = pd.DataFrame([{ 'ID': int(index) , 'Cultura': culturas, 'Area (m2)': f"{area:.2f}" , 'Insumo (L)': f"{insumos_totais[0]:.2f}"}])
+    df = pd.concat([df_dados, nova_linha])
+    df.to_csv('dados.csv', index=False)
 
 def atualizar_dados():
     saida_dados()
@@ -86,6 +117,7 @@ def atualizar_dados():
             
             areas[idx] = nova_area
             insumos_totais[idx] = novo_insumo
+            salvar_dados()
             print("Dados atualizados com sucesso!")
         else:
             print("ID inválido!")
@@ -102,14 +134,12 @@ def deletar_dados():
             removido = culturas.pop(idx)
             areas.pop(idx)
             insumos_totais.pop(idx)
+            salvar_dados()
             print(f"Dados de {removido} deletados com sucesso!")
         else:
             print("ID inválido!")
     except ValueError:
         print("Entrada inválida! Digite um número.")
-
-    
-    
 
 while True:
     opcao = menu()
